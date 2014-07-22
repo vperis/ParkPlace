@@ -19,6 +19,8 @@
 
 @property (weak, nonatomic) IBOutlet UILabel *distanceLabel;
 
+@property (weak, nonatomic) IBOutlet UILabel *totalDIstanceLabel;
+
 @property (weak, nonatomic) IBOutlet MKMapView *mapView;
 
 - (IBAction)refreshTapped:(id)sender;

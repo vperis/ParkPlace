@@ -26,6 +26,15 @@
 #define PLUS_VIEW 1
 
 
+// definitions for calculations of distance
+#define kDistanceCalculationInterval 5 // the interval (seconds) at which we calculate the user's distance
+#define kNumLocationHistoriesToKeep 5 // the number of locations to store in history so that we can look back at them and determine which is most accurate
+#define kValidLocationHistoryDeltaInterval 3 // the maximum valid age in seconds of a location stored in the location history
+#define kMinLocationsNeededToUpdateDistance 3 // the number of locations needed in history before we will even update the current distance
+#define kRequiredHorizontalAccuracy 40.0f // the required accuracy in meters for a location.  anything above this number will be discarded
+
+
+
 NSString * clickDescription = @"Click Here";
 NSString * address = @"to get directions";
 
@@ -38,6 +47,10 @@ static NSInteger displayView = MINUS_VIEW;
 
 @implementation ViewController {
     CLLocationManager *locationManager;
+    NSMutableArray  *locationHistory;
+    CLLocation *lastRecordedLocation;
+    NSTimeInterval lastDistanceCalculation;
+    CLLocationDistance totalDistance;
 }
 
 
@@ -54,15 +67,21 @@ static NSInteger displayView = MINUS_VIEW;
     staticCoordinate.longitude = START_LONGITUDE;
     
     // setup the label font
-    
-    [self.distanceLabel setFont:[UIFont fontWithName:@"American Typewriter" size:48]];
+
+    [self.distanceLabel setFont:[UIFont fontWithName:@"American Typewriter" size:40]];
+    [self.totalDIstanceLabel setFont:[UIFont fontWithName:@"American Typewriter" size:40]];
+
     
     // setup the label text
     self.distanceLabel.text = @"";
-
+    self.totalDIstanceLabel.text = @"";
+    
+    locationHistory = [NSMutableArray arrayWithCapacity:kNumLocationHistoriesToKeep];
+    lastRecordedLocation = nil;
+    lastDistanceCalculation = 0;
+    totalDistance = 0;
+    
     locationManager = [[CLLocationManager alloc] init];
-    
-    
     locationManager.delegate = self;
     locationManager.desiredAccuracy = kCLLocationAccuracyBest;
     
@@ -100,6 +119,46 @@ static NSInteger displayView = MINUS_VIEW;
     
     staticCoordinate.latitude = currentLocation.coordinate.latitude;
     staticCoordinate.longitude = currentLocation.coordinate.longitude;
+    
+    // since the oldLocation might be from some previous use of core location, we need to make sure we're getting data from this run
+    if (oldLocation == nil) return;
+    
+   // [self.delegate locationManagerDebugText:[NSString stringWithFormat:@"accuracy: %.2f", newLocation.horizontalAccuracy]];
+    
+    if (newLocation.horizontalAccuracy >= 0.0f && newLocation.horizontalAccuracy < kRequiredHorizontalAccuracy) {
+        
+        [locationHistory addObject:newLocation];
+        if ([locationHistory count] > kNumLocationHistoriesToKeep) {
+            [locationHistory removeObjectAtIndex:0];
+        }
+        
+        BOOL canUpdateDistance = NO;
+        if ([locationHistory count] >= kMinLocationsNeededToUpdateDistance) {
+            canUpdateDistance = YES;
+        }
+        
+        if ([NSDate timeIntervalSinceReferenceDate] - lastDistanceCalculation > kDistanceCalculationInterval) {
+            lastDistanceCalculation = [NSDate timeIntervalSinceReferenceDate];
+            
+            CLLocation *lastLocation = (lastRecordedLocation != nil) ? lastRecordedLocation : oldLocation;
+            
+            CLLocation *bestLocation = nil;
+            CGFloat bestAccuracy = kRequiredHorizontalAccuracy;
+            for (CLLocation *location in locationHistory) {
+                if ([NSDate timeIntervalSinceReferenceDate] - [location.timestamp timeIntervalSinceReferenceDate] <= kValidLocationHistoryDeltaInterval) {
+                    if (location.horizontalAccuracy < bestAccuracy && location != lastLocation) {
+                        bestAccuracy = location.horizontalAccuracy;
+                        bestLocation = location;
+                    }
+                }
+            }
+            if (bestLocation == nil) bestLocation = newLocation;
+            
+            CLLocationDistance distance = [bestLocation distanceFromLocation:lastLocation];
+            if (canUpdateDistance) totalDistance += distance;
+            lastRecordedLocation = bestLocation;
+        }
+    }
     
     
     switch (displayMode)
@@ -193,8 +252,10 @@ static NSInteger displayView = MINUS_VIEW;
             CLLocationDistance distance = [location1 distanceFromLocation:location2];
             
             //print the label
-            self.distanceLabel.text = [NSString stringWithFormat:@"%4.0f m", distance];
-            
+            self.distanceLabel.text = [NSString stringWithFormat:@" d:%4.0f m", distance];
+            self.totalDIstanceLabel.text = [NSString stringWithFormat:@"td:%4.0f m", totalDistance];
+
+        
     }
     else {
         //stop location updates
@@ -290,6 +351,7 @@ static NSInteger displayView = MINUS_VIEW;
     
     // clear the label text
     self.distanceLabel.text = @"";
+    self.totalDIstanceLabel.text = @"";
 
     
     for (id<MKAnnotation> annotation in _mapView.annotations) {
