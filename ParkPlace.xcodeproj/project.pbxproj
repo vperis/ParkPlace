@@ -24,6 +24,7 @@
 		C86E61FB1978A6CD00C37BD1 /* UIKit.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = C86E61DA1978A6CD00C37BD1 /* UIKit.framework */; };
 		C86E62031978A6CD00C37BD1 /* InfoPlist.strings in Resources */ = {isa = PBXBuildFile; fileRef = C86E62011978A6CD00C37BD1 /* InfoPlist.strings */; };
 		C86E62051978A6CD00C37BD1 /* ParkPlaceTests.m in Sources */ = {isa = PBXBuildFile; fileRef = C86E62041978A6CD00C37BD1 /* ParkPlaceTests.m */; };
+		C896DF4C19C169F20020E384 /* iBeaconViewController.m in Sources */ = {isa = PBXBuildFile; fileRef = C896DF4B19C169F20020E384 /* iBeaconViewController.m */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXContainerItemProxy section */
@@ -60,6 +61,9 @@
 		C86E62001978A6CD00C37BD1 /* ParkPlaceTests-Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; path = "ParkPlaceTests-Info.plist"; sourceTree = "<group>"; };
 		C86E62021978A6CD00C37BD1 /* en */ = {isa = PBXFileReference; lastKnownFileType = text.plist.strings; name = en; path = en.lproj/InfoPlist.strings; sourceTree = "<group>"; };
 		C86E62041978A6CD00C37BD1 /* ParkPlaceTests.m */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.objc; path = ParkPlaceTests.m; sourceTree = "<group>"; };
+		C896DF4A19C169F20020E384 /* iBeaconViewController.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = iBeaconViewController.h; sourceTree = "<group>"; };
+		C896DF4B19C169F20020E384 /* iBeaconViewController.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = iBeaconViewController.m; sourceTree = "<group>"; };
+		C896DF4D19C2BBB20020E384 /* ParkPlace.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = ParkPlace.h; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -89,6 +93,8 @@
 		C86E61CA1978A6CD00C37BD1 = {
 			isa = PBXGroup;
 			children = (
+				C896DF4A19C169F20020E384 /* iBeaconViewController.h */,
+				C896DF4B19C169F20020E384 /* iBeaconViewController.m */,
 				C86E61DC1978A6CD00C37BD1 /* ParkPlace */,
 				C86E61FE1978A6CD00C37BD1 /* ParkPlaceTests */,
 				C86E61D51978A6CD00C37BD1 /* Frameworks */,
@@ -137,6 +143,7 @@
 		C86E61DD1978A6CD00C37BD1 /* Supporting Files */ = {
 			isa = PBXGroup;
 			children = (
+				C896DF4D19C2BBB20020E384 /* ParkPlace.h */,
 				C86E61DE1978A6CD00C37BD1 /* ParkPlace-Info.plist */,
 				C86E61DF1978A6CD00C37BD1 /* InfoPlist.strings */,
 				C86E61E21978A6CD00C37BD1 /* main.m */,
@@ -262,6 +269,7 @@
 			isa = PBXSourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				C896DF4C19C169F20020E384 /* iBeaconViewController.m in Sources */,
 				C806AC6D1978C7A100C0A83C /* AppDelegate.m in Sources */,
 				C806AC6A1978C73300C0A83C /* Mylocation.m in Sources */,
 				C806AC721978C85000C0A83C /* ViewController.m in Sources */,

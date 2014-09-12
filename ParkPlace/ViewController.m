@@ -8,30 +8,7 @@
 
 #import "ViewController.h"
 #import "MyLocation.h"
-
-#define START_LATITUDE 37.327795
-#define START_LONGITUDE -122.065158
-
-// view Region that is 1 Mile x 1 Mile wide has value 0.5
-#define VIEW_REGION1 0.5
-#define VIEW_REGION100 500
-
-// define display operations when there is motion
-
-#define INIT_VIEW 1
-#define DROP_PIN 2
-#define PIN_ON_MAP 3
-
-#define MINUS_VIEW -1
-#define PLUS_VIEW 1
-
-
-// definitions for calculations of distance
-#define kDistanceCalculationInterval 5 // the interval (seconds) at which we calculate the user's distance
-#define kNumLocationHistoriesToKeep 5 // the number of locations to store in history so that we can look back at them and determine which is most accurate
-#define kValidLocationHistoryDeltaInterval 3 // the maximum valid age in seconds of a location stored in the location history
-#define kMinLocationsNeededToUpdateDistance 3 // the number of locations needed in history before we will even update the current distance
-#define kRequiredHorizontalAccuracy 40.0f // the required accuracy in meters for a location.  anything above this number will be discarded
+#import "ParkPlace.h"
 
 
 
@@ -41,8 +18,11 @@ NSString * address = @"to get directions";
 static CLLocationCoordinate2D staticCoordinate;
 static CLLocationCoordinate2D lastParkCoordinate;
 
-static NSInteger displayMode = INIT_VIEW;
-static NSInteger displayView = MINUS_VIEW;
+NSInteger displayMode = INIT_VIEW;
+NSInteger displayView = MINUS_VIEW;
+
+static NSDate *backgroundTimeOut;
+
 
 
 @implementation ViewController {
@@ -85,6 +65,7 @@ static NSInteger displayView = MINUS_VIEW;
     locationManager.delegate = self;
     locationManager.desiredAccuracy = kCLLocationAccuracyBest;
     
+ 
     [locationManager startUpdatingLocation];
     
 
@@ -105,7 +86,7 @@ static NSInteger displayView = MINUS_VIEW;
 
 - (void)locationManager:(CLLocationManager *)manager didFailWithError:(NSError *)error
 {
-    NSLog(@"didFailWithError: %@", error);
+    MyLog(@"didFailWithError: %@", error);
     UIAlertView *errorAlert = [[UIAlertView alloc]
                                initWithTitle:@"Error" message:@"Failed to Get Your Location" delegate:nil cancelButtonTitle:@"OK" otherButtonTitles:nil];
     [errorAlert show];
@@ -114,7 +95,7 @@ static NSInteger displayView = MINUS_VIEW;
 - (void)locationManager:(CLLocationManager *)manager didUpdateToLocation:(CLLocation *)newLocation fromLocation:(CLLocation *)oldLocation
 {
     
-    NSLog(@"didUpdateToLocation: %@", newLocation);
+    MyLog(@"didUpdateToLocation: %@", newLocation);
     CLLocation *currentLocation = newLocation;
     
     staticCoordinate.latitude = currentLocation.coordinate.latitude;
@@ -201,6 +182,10 @@ static NSInteger displayView = MINUS_VIEW;
             // Get current datetime
             NSDate *currentDateTime = [NSDate date];
             
+            
+            backgroundTimeOut = [NSDate dateWithTimeInterval:kSecondsInTimeLimit
+                                                         sinceDate:currentDateTime];
+            
             // Instantiate a NSDateFormatter
             NSDateFormatter *dateFormatter = [[NSDateFormatter alloc] init];
             
@@ -243,6 +228,12 @@ static NSInteger displayView = MINUS_VIEW;
     
     if ( displayView == PLUS_VIEW ) {
         
+        if (UIApplication.sharedApplication.applicationState == UIApplicationStateActive) {
+            
+            MyLog(@"Location update received in active state");
+
+
+        
             CLLocation *location1 = [[CLLocation alloc] initWithLatitude:lastParkCoordinate.latitude
                                                                longitude:lastParkCoordinate.longitude];
             CLLocation *location2 = [[CLLocation alloc] initWithLatitude:staticCoordinate.latitude
@@ -254,7 +245,15 @@ static NSInteger displayView = MINUS_VIEW;
             //print the label
             self.distanceLabel.text = [NSString stringWithFormat:@" d:%4.0f m", distance];
             self.totalDIstanceLabel.text = [NSString stringWithFormat:@"td:%4.0f m", totalDistance];
-
+        }
+        
+        NSComparisonResult result = [currentLocation.timestamp compare:backgroundTimeOut];
+        
+        if (result == NSOrderedDescending) {
+            MyLog(@"Background update of location stopped");
+            //stop location updates
+            [locationManager stopUpdatingLocation];
+        }
         
     }
     else {
@@ -340,6 +339,7 @@ static NSInteger displayView = MINUS_VIEW;
 }
 
 
+
 #pragma mark - Button Actions
 
 
@@ -371,7 +371,7 @@ static NSInteger displayView = MINUS_VIEW;
     
     displayMode = DROP_PIN;
     
-    NSLog(@"Touched the Park button");
+    MyLog(@"Touched the Park button");
 
     [locationManager startUpdatingLocation];
     
@@ -381,7 +381,7 @@ static NSInteger displayView = MINUS_VIEW;
 
 - (IBAction)parkDistance:(id)sender {
     
-    NSLog(@"Touched the plus sign");
+    MyLog(@"Touched the plus sign");
     
     if (displayMode == PIN_ON_MAP) {
         
@@ -398,10 +398,12 @@ static NSInteger displayView = MINUS_VIEW;
     // clear the displayView flag
     displayView = -1;
     
-    NSLog(@"Touched the minus sign");
+    MyLog(@"Touched the minus sign");
 
     // clear the label text
     self.distanceLabel.text = @"";
+    self.totalDIstanceLabel.text = @"";
+
     
     // no need to update location anymore
     [locationManager stopUpdatingLocation];

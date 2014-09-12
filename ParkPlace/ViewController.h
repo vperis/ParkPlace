@@ -10,12 +10,13 @@
 #import <MapKit/MapKit.h>
 #import <CoreLocation/CoreLocation.h>
 
-#define METERS_PER_MILE 1609.344
 
 
 @interface ViewController : UIViewController<MKMapViewDelegate, CLLocationManagerDelegate>{
     BOOL _doneInitialZoom;
 }
+
+@property (strong, nonatomic) CLBeaconRegion *beaconRegion;
 
 @property (weak, nonatomic) IBOutlet UILabel *distanceLabel;
 
@@ -30,6 +31,7 @@
 - (IBAction)parkDistance:(id)sender;
 
 - (IBAction)clearParkDistance:(id)sender;
+
 
 @end
 
